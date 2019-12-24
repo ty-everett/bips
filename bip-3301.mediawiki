@@ -85,7 +85,7 @@ The sender wallet MAY auto-select a currency for the sender if there is only one
 
 ===Future Possibilities for Backwards-Compatible Improvements to Universal Addresses===
 
-A future BIP MAY specify a URI-style format (e.g. “pay:…”) and, if a URI-style format for Universal Addresses is proposed, the proposing BIP SHOULD consider removing unnecessary fields (version bytes, depth, parent key fingerprint and child index) from the base58-encoded string. However, to reduce the friction for adoption of Universal Addresses by the community and to promote compatibility with existing software, those changes are not proposed as part of this BIP. BIP3301 Universal Addresses can be converted to a new, shorter format in the future[6]. Libraries, wallets and BIPs building on top of and claiming support for BIP3301 Universal Addresses MUST maintain seamless backwards-compatible support for the use of standard BIP32-serialized extended public keys as BIP3301 Universal Addresses.
+A future BIP MAY specify a URI-style format (e.g. “pay:…”) and, if a URI-style format for Universal Addresses is proposed, the proposing BIP SHOULD consider removing unnecessary fields (version bytes, depth, parent key fingerprint and child index) from the base58-encoded string. However, to reduce the friction for adoption of Universal Addresses by the community and to promote compatibility with existing software, those changes are not proposed as part of this BIP. BIP3301 Universal Addresses can be converted to a new, shorter format in the future<ref name="new-format-convertibility">Conversion can occur by simply deserializing the string, removing the unnecessary fields and re-serializing to the new format.</ref>. Libraries, wallets and BIPs building on top of and claiming support for BIP3301 Universal Addresses MUST maintain seamless backwards-compatible support for the use of standard BIP32-serialized extended public keys as BIP3301 Universal Addresses.
 
 ===BIP3301 Universal Address Validity Checks===
 
@@ -103,7 +103,7 @@ This BIP mandates that it is absolutely REQUIRED that the community agree on SLI
 
 ===Universal Address Sharing===
 
-Universal Addresses SHOULD be viewed as having two possible security models: they can be fully public or they can be kept secret between the recipient and exactly one sender. Fully public addresses are OK, because Universal Addresses do not claim to provide confidentiality about the amounts and currencies received by the recipient. Fully private addresses, where the recipient allocates a new address for every sender (such that each sender has their own designated Universal Address for the recipient, but no sender may learn the Universal Address of any other senders to the recipient) are also secure and have other benefits<ref name="multi-transactional-benefits" />. However, other security models have inherent weaknesses[5] and SHOULD definitely be avoided.
+Universal Addresses SHOULD be viewed as having two possible security models: they can be fully public or they can be kept secret between the recipient and exactly one sender. Fully public addresses are OK, because Universal Addresses do not claim to provide confidentiality about the amounts and currencies received by the recipient. Fully private addresses, where the recipient allocates a new address for every sender (such that each sender has their own designated Universal Address for the recipient, but no sender may learn the Universal Address of any other senders to the recipient) are also secure and have other benefits<ref name="multi-transactional-benefits" />. However, other security models have inherent weaknesses<ref name="weak-group-security">In particular, situations where a group of entities know a single Universal Address for a member, and where the transactions of the members of the group which involve the known Universal Address are not intended to be public should be avoided. By publishing the known Universal Address, a single member of the group can compromise the privacy of the transactions of all group members involving the known Universal Address. Each recipient SHOULD take care to allocate new Universal Addresses for each entity with whom they intend to transact business; even if an allocated address never gets used by a sender, a completely new address SHOULD be allocated by the recipient for each potential sender when privacy is strictly required because the previously-designated sender can learn the transactional activity between the newly-designated sender and the recipient if addresses are reused.</ref> and SHOULD definitely be avoided.
 
 ===Balance Calculation Algorithm===
 
@@ -173,7 +173,7 @@ In a (semi)-private chat, a user receives a Universal Address:
 xpub6AJUhNSZRaZS7d9eJ2jyyuNMbkMWQgHNEgDt9rC3WJfkXvQDAKu9LZLhMhVkeot66EtEtBJK48Ca3qNfrjBH1otkBc2CNPwaTMeHSh3TvL1
 </pre>
 
-The user received this particular Universal Address some months ago[7], and has used to for 17 previous Bitcoin transactions and 2 Litecoin transactions to this recipient.
+The user received this particular Universal Address some months ago<ref name="address-to-identity-maps">Since Universal Addresses can be reused, the user’s wallet could keep an associative list mapping names to Universal Addresses. Wallets MAY consider making this look like an address book, where the user can add their associates as contacts.</ref>, and has used to for 17 previous Bitcoin transactions and 2 Litecoin transactions to this recipient.
 
 The user wants to send 2 BTC to the recipient. The user’s wallet has two unspent outputs in different places; the first for 1.5 BTC and the second for 1 BTC.
 
@@ -183,7 +183,7 @@ The wallet notices that the recipient’s Universal Address indicates no prefere
 xpub6CUu5jU1UVXsB3zstbr6MDZcmZy9SAEfsTtm81iR2foAtRZ34cb9jnr4D1jcQxKG9y9fMhVeqYy9kC3j4jidyhbrRuX6nXiYgSdQSwZmzVi
 </pre>
 
-Since the sender’s wallet supports "Enhanced Privacy Mode", it will increment the Bitcoin shield counter starting at child #1 and querying the blockchain for each shielded address to see if it has ever been used[8]. The wallet sees that the shield counter is at #17[9]. Since the wallet uses “Enhanced Privacy Mode”, it MUST NOT use shielded children less than child #18. For privacy, the wallet MAY also split the payment into two or more transactions[11]. The wallet will now derive the #18 and #19 children of the Bitcoin node:
+Since the sender’s wallet supports "Enhanced Privacy Mode", it will increment the Bitcoin shield counter starting at child #1 and querying the blockchain for each shielded address to see if it has ever been used<ref name="binary-search-and-caching">Wallets MAY use a binary search-style querying strategy to speed up this process as opposed to a linear search of the blockchain. The wallet MAY also cache the highest known-to-be-used shield counter for each previously-checked currency of each Universal Address it has seen in the past.</ref>. The wallet sees that the shield counter is at #17<ref name="always-check-shield-counters">Wallets SHOULD always check shield counters even if cached data exists, because a publicly-known Universal Address could have been used by another sender. However, caching speeds up future checks because the wallet knows that the shield value is not less than the cached value.</ref>. Since the wallet uses “Enhanced Privacy Mode”, it MUST NOT use shielded children less than child #18. For privacy, the wallet MAY also split the payment into two or more transactions<ref name="multi-blockchain-payments">It is also possible for the sender to conduct a multi-blockchain payment. For example, the sender might send one Bitcoin transaction and two Litecoin transactions. The sender SHOULD only attempt this with communication and coordination with the recipient to avoid confusion. The sender always has an incentive to ensure the recipient properly receives the payment.</ref>. The wallet will now derive the #18 and #19 children of the Bitcoin node:
 
 <pre>
 xpub6EvkmcciNXPHVoiSP4sV21mgAWi3MAzJtvwRFXoNuUusADN1KU9eZ9REkuD7PgtRDR1ggKRSvci8L6uhegmcoNwSP8QDfSqRH66iC6oGYWs
@@ -225,7 +225,7 @@ A: In existing implementations, the sender can breach their own privacy in many 
 
 ===Q: Can’t a sender publish the recipient’s non-public Universal Address to compromise the recipient's privacy?===
 
-A: Recipients should only share the same non-public Universal Address with one sender. Thus, the impact of such a disclosure is limited to transactions strictly involving this particular sender. Refer to the “Universal Address Sharing“ subsection of the “Specification” section and [5] for further details. It is also worth noting that by revealing the non-public Universal Address, the sender explicitly notifies the recipient that they have breached the recipient's implicit trust relationship. Since the recipient gave the non-public Universal Address solely to this sender and since the recipient knows that they were not the one to have published it, the recipient can be certain that the sender published the address. The sender will lose the implicit trust of the recipient to maintain privacy.
+A: Recipients should only share the same non-public Universal Address with one sender. Thus, the impact of such a disclosure is limited to transactions strictly involving this particular sender. Refer to the “Universal Address Sharing“ subsection of the “Specification” section and <ref name="weak-group-security" /> for further details. It is also worth noting that by revealing the non-public Universal Address, the sender explicitly notifies the recipient that they have breached the recipient's implicit trust relationship. Since the recipient gave the non-public Universal Address solely to this sender and since the recipient knows that they were not the one to have published it, the recipient can be certain that the sender published the address. The sender will lose the implicit trust of the recipient to maintain privacy.
 
 ===Q: Suppose a recipient publishes their own previously-undisclosed non-public Universal Address. Would this reveal that two or more spent outputs were from the same sender?===
 
@@ -250,18 +250,6 @@ A: BIP3301 Universal Addresses were designed to work well for most people and mo
 ==References==
 
 <references />
-
-[5]: In particular, situations where a group of entities know a single Universal Address for a member, and where the transactions of the members of the group which involve the known Universal Address are not intended to be public should be avoided. By publishing the known Universal Address, a single member of the group can compromise the privacy of the transactions of all group members involving the known Universal Address. Each recipient SHOULD take care to allocate new Universal Addresses for each entity with whom they intend to transact business; even if an allocated address never gets used by a sender, a completely new address SHOULD be allocated by the recipient for each potential sender when privacy is strictly required because the previously-designated sender can learn the transactional activity between the newly-designated sender and the recipient if addresses are reused.
-
-[6]: Conversion can occur by simply deserializing the string, removing the unnecessary fields and re-serializing to the new format.
-
-[7]: Since Universal Addresses can be reused, the user’s wallet could keep an associative list mapping names to Universal Addresses. Wallets MAY consider making this look like an address book, where the user can add their associates as contacts.
-
-[8]: Wallets MAY use a binary search-style querying strategy to speed up this process as opposed to a linear search of the blockchain. The wallet MAY also cache the highest known-to-be-used shield counter for each previously-checked currency of each Universal Address it has seen in the past.
-
-[9]: Wallets SHOULD always check shield counters even if cached data exists, because a publicly-known Universal Address could have been used by another sender. However, caching speeds up future checks because the wallet knows that the shield value is not less than the cached value.
-
-[11]: It is also possible for the sender to conduct a multi-blockchain payment. For example, the sender might send one Bitcoin transaction and two Litecoin transactions. The sender SHOULD only attempt this with communication and coordination with the recipient to avoid confusion. The sender always has an incentive to ensure the recipient properly receives the payment.
 
 ==See Also==
 
