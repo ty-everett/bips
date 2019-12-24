@@ -931,6 +931,13 @@ Those proposing changes should consider that ultimately consent may rest with th
 | Gleb Naumenko, Pieter Wuille
 | Standard
 | Draft
+|-
+| [[bip-3301.mediawiki|3301]]
+| Applications
+| Universal Addresses
+| Ty Everett
+| Informational
+| Draft
 |}
 
 <!-- IMPORTANT!  See the instructions at the top of this page, do NOT JUST add BIPs here! -->
